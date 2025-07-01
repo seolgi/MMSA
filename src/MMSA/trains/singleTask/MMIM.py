@@ -151,19 +151,16 @@ class MMIM():
                 if p.dim() > 1: # only tensor with no less than 2 dimensions are possible to calculate fan_in/fan_out
                     nn.init.xavier_normal_(p)
 
-        self.optimizer_mmilb = getattr(torch.optim, self.args.optim)(
-            mmilb_param, lr=self.args.lr_mmilb, weight_decay=self.args.weight_decay_mmilb)
+        self.optimizer_mmilb = optim.Adam(mmilb_param, lr=self.args.lr_mmilb, weight_decay=self.args.weight_decay_mmilb)
         
         optimizer_main_group = [
             {'params': bert_param, 'weight_decay': self.args.weight_decay_bert, 'lr': self.args.lr_bert},
             {'params': main_param, 'weight_decay': self.args.weight_decay_main, 'lr': self.args.lr_main}
         ]
 
-        self.optimizer_main = getattr(torch.optim, self.args.optim)(
-            optimizer_main_group
-        )
+        self.optimizer_main = optim.Adam(optimizer_main_group)
 
-        self.scheduler_main = ReduceLROnPlateau(self.optimizer_main, mode='min', patience=self.args.when, factor=0.5, verbose=True)
+        self.scheduler_main = ReduceLROnPlateau(self.optimizer_main, mode='min', patience=self.args.when, factor=0.5)
 
         # initilize results
         epochs, best_epoch = 0, 0

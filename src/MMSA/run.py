@@ -14,7 +14,8 @@ import torch
 from easydict import EasyDict as edict
 
 from .config import get_config_regression, get_config_tune
-from .data_loader import MMDataLoader
+#from .data_loader import MMDataLoader
+from .data_ours_c import MMDataLoader
 from .models import AMIO
 from .trains import ATIO
 from .utils import assign_gpu, count_parameters, setup_seed
@@ -59,7 +60,7 @@ def _set_logger(log_dir, model_name, dataset_name, verbose_level):
 
 def MMSA_run(
     model_name: str, dataset_name: str, config_file: str = None,
-    config: dict = None, seeds: list = [], is_tune: bool = False,
+    config: dict = None, seeds: list = [], test_seeds: list = None, is_tune: bool = False,
     tune_times: int = 50, custom_feature: str = None, feature_T: str = None, 
     feature_A: str = None, feature_V: str = None, gpu_ids: list = [0],
     num_workers: int = 4, verbose_level: int = 1,
@@ -81,6 +82,7 @@ def MMSA_run(
             files will be used.
         config: Config dict. Used to override arguments in config_file. 
         seeds: List of seeds. Default: [1111, 1112, 1113, 1114, 1115]
+        test_seeds: List of test seeds. Default: None
         is_tune: Tuning mode switch. Default: False
         tune_times: Sets of hyper parameters to tune. Default: 50
         custom_feature: Path to custom feature file. The custom feature should
@@ -125,6 +127,7 @@ def MMSA_run(
         log_dir = Path.home() / "MMSA" / "logs"
     Path(log_dir).mkdir(parents=True, exist_ok=True)
     seeds = seeds if seeds != [] else [1111, 1112, 1113, 1114, 1115]
+    test_seeds = test_seeds if test_seeds else []
     logger = _set_logger(log_dir, model_name, dataset_name, verbose_level)
 
     logger.info("======================================== Program Start ========================================")
@@ -174,7 +177,7 @@ def MMSA_run(
                 continue
             # actual running
             setup_seed(seeds[0])
-            result = _run(args, num_workers, is_tune)
+            result = _run(args, num_workers, is_tune, test_seed=test_seeds[i] if i < len(test_seeds) else None)
             has_debuged.append(cur_param)
             # save result to csv file
             if Path(csv_file).is_file():
@@ -218,7 +221,8 @@ def MMSA_run(
             args['cur_seed'] = i + 1
             logger.info(f"{'-'*30} Running with seed {seed} [{i + 1}/{len(seeds)}] {'-'*30}")
             # actual running
-            result = _run(args, num_workers, is_tune)
+            current_test_seed = test_seeds[i] if test_seeds and i < len(test_seeds) else None
+            result = _run(args, num_workers, is_tune, test_seed=current_test_seed)
             logger.info(f"Result for seed {seed}: {result}")
             model_results.append(result)
         criterions = list(model_results[0].keys())
@@ -240,9 +244,10 @@ def MMSA_run(
         logger.info(f"Results saved to {csv_file}.")
 
 
-def _run(args, num_workers=4, is_tune=False, from_sena=False):
+def _run(args, num_workers=4, is_tune=False, from_sena=False, test_seed=None):
     # load data and models
-    dataloader = MMDataLoader(args, num_workers)
+    logger.info("Creating train/valid dataloaders...")
+    dataloader = MMDataLoader(args, modes=['train', 'valid'])
     model = AMIO(args).to(args['device'])
 
     logger.info(f'The model has {count_parameters(model)} trainable parameters')
@@ -259,6 +264,15 @@ def _run(args, num_workers=4, is_tune=False, from_sena=False):
     assert Path(args['model_save_path']).exists()
     model.load_state_dict(torch.load(args['model_save_path']))
     model.to(args['device'])
+
+    if test_seed is not None:
+        logger.info(f"Switching to test seed: {test_seed}")
+        setup_seed(test_seed)
+
+    logger.info("Creating test dataloader with new seed...")
+    test_dataloader_only = MMDataLoader(args, modes=['test'])
+    dataloader['test'] = test_dataloader_only['test']
+
     if from_sena:
         final_results = {}
         final_results['train'] = trainer.do_test(model, dataloader['train'], mode="TRAIN", return_sample_results=True)
