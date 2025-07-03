@@ -213,30 +213,28 @@ class MMDataset(Dataset):
             self.vision_m, self.vision_length, self.vision_mask, self.vision_missing_mask = self.generate_m(self.vision, None, self.vision_lengths,
                                                                                     missing_rate[2], self.missing_seed, mode='vision')
 
-        text = torch.from_numpy(self.text_m[index]).float()
-        audio = torch.from_numpy(self.audio_m[index]).float()
-        vision = torch.from_numpy(self.vision_m[index]).float()
-        audio_lengths = torch.from_numpy(np.array(self.audio_lengths[index])).long()
-        vision_lengths = torch.from_numpy(np.array(self.vision_lengths[index])).long()
-        
+        """
         sample = {
-            'raw_text': self.rawText[index],
-            'text': torch.from_numpy(self.text[index]).float(),
-            'text_m': text,
-            'text_missing_mask': torch.from_numpy(self.text_missing_mask[index]).float(),
-            'audio': torch.from_numpy(self.audio[index]).float(),
-            'audio_m': audio,
-            'audio_mask': torch.from_numpy(self.audio_mask[index]).float(),
-            'audio_missing_mask': torch.from_numpy(self.audio_missing_mask[index]).float(),
-            'vision': torch.from_numpy(self.vision[index]).float(),
-            'vision_m': vision,
-            'vision_mask': torch.from_numpy(self.vision_mask[index]).float(),
-            'vision_missing_mask': torch.from_numpy(self.vision_missing_mask[index]).float(),
-            'audio_lengths': audio_lengths,
-            'vision_lengths': vision_lengths,
+            'text': torch.Tensor(self.text[index]),
+            'text_m': torch.Tensor(self.text_m[index]), 
+            'audio': torch.Tensor(self.audio[index]),
+            'audio_m': torch.Tensor(self.audio_m[index]),
+            'vision': torch.Tensor(self.vision[index]),
+            'vision_m': torch.Tensor(self.vision_m[index]),
             'index': index,
             'id': self.ids[index],
             'labels': {k: torch.Tensor(v[index].reshape(-1)) for k, v in self.labels.items()},
+            'rawText': self.rawText[index]
+        }
+        """
+        sample = {
+            'text': torch.Tensor(self.text_m[index]),
+            'audio': torch.Tensor(self.audio_m[index]),
+            'vision': torch.Tensor(self.vision_m[index]),
+            'index': index,
+            'id': self.ids[index],
+            'labels': {k: torch.Tensor(v[index].reshape(-1)) for k, v in self.labels.items()},
+            'rawText': self.rawText[index]
         }
 
         return sample

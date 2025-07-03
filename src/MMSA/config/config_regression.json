@@ -1,6 +1,6 @@
 {
   "datasetCommonParams": {
-    "dataset_root_dir": "/home/sharing/disk3/Datasets/MMSA-Standard",
+    "dataset_root_dir": "/workspace/aaai_baseline_v3/MMSA_mmsa_ours/MMSA/data",
     "mosi": {
       "aligned": {
         "featurePath": "MOSI/Processed/aligned_50.pkl",
@@ -620,6 +620,7 @@
   },
   "misa": {
     "commonParams": {
+      "do_missing": true,
       "need_data_aligned": false,
       "need_model_aligned": false,
       "use_finetune": true,
