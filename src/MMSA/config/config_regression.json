@@ -1,9 +1,9 @@
 {
   "datasetCommonParams": {
-    "dataset_root_dir": "/home/sharing/disk3/Datasets/MMSA-Standard",
+    "dataset_root_dir": "/mnt/nfs5/byunggill/mmsa/LNLN/new_data/",
     "mosi": {
       "aligned": {
-        "featurePath": "MOSI/Processed/aligned_50.pkl",
+        "featurePath": "CMU-MOSI/Processed/aligned_50.pkl",
         "seq_lens": [50, 50, 50],
         "feature_dims": [768, 5, 20],
         "train_samples": 1284,
@@ -14,7 +14,7 @@
         "missing_seed": [1111, 1111, 1111]
       },
       "unaligned": {
-        "featurePath": "MOSI/Processed/unaligned_50.pkl",
+        "featurePath": "CMU-MOSI/Processed/unaligned_50.pkl",
         "seq_lens": [50, 500, 375],
         "feature_dims": [768, 5, 20],
         "train_samples": 1284,
@@ -27,7 +27,7 @@
     },
     "mosei": {
       "aligned": {
-        "featurePath": "MOSEI/Processed/aligned_50.pkl",
+        "featurePath": "CMU-MOSEI/Processed/aligned_50.pkl",
         "seq_lens": [50, 50, 50],
         "feature_dims": [768, 74, 35],
         "train_samples": 16326,
@@ -38,7 +38,7 @@
         "missing_seed": [1111, 1111, 1111]
       },
       "unaligned": {
-        "featurePath": "MOSEI/Processed/unaligned_50.pkl",
+        "featurePath": "CMU-MOSEI/Processed/unaligned_50.pkl",
         "seq_lens": [50, 500, 375],
         "feature_dims": [768, 74, 35],
         "train_samples": 16326,

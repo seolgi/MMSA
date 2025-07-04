@@ -46,9 +46,10 @@ class MISA():
                     if left_epochs == self.args.update_epochs:
                         optimizer.zero_grad()
                     left_epochs -= 1
-                    text = batch_data['text'].to(self.args.device)
-                    audio = batch_data['audio'].to(self.args.device)
-                    vision = batch_data['vision'].to(self.args.device)
+                    #print('AUDIO M', batch_data['audio_m'])
+                    text = batch_data['text_m'].to(self.args.device)
+                    audio = batch_data['audio_m'].to(self.args.device)
+                    vision = batch_data['vision_m'].to(self.args.device)
                     labels = batch_data['labels']['M'].to(self.args.device)
                     if self.args.train_mode == 'classification':
                         labels = labels.view(-1).long()
@@ -131,9 +132,9 @@ class MISA():
         with torch.no_grad():
             with tqdm(dataloader) as td:
                 for batch_data in td:
-                    vision = batch_data['vision'].to(self.args.device)
-                    audio = batch_data['audio'].to(self.args.device)
-                    text = batch_data['text'].to(self.args.device)
+                    vision = batch_data['vision_m'].to(self.args.device)
+                    audio = batch_data['audio_m'].to(self.args.device)
+                    text = batch_data['text_m'].to(self.args.device)
                     labels = batch_data['labels']['M'].to(self.args.device)
                     if self.args.train_mode == 'classification':
                         labels = labels.view(-1).long()
