@@ -1,11 +1,19 @@
 from MMSA import MMSA_run
+import argparse
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--model_name', type=str, default='misa', choices=['misa', 'self_mm', 'mmim', 'cenet', 'almt', 'tfr_net'])
+parser.add_argument('--dataset_name', type=str, default='mosi')
+parser.add_argument('--seeds', type=list, default=[1111, 1112, 1113])
+parser.add_argument('--test_seeds', type=list, default=[1111, 1112, 1113])
+parser.add_argument('--gpu_ids', type=list, default=[7])
+args = parser.parse_args()
+print("args: ", args)
 
-
-MMSA_run('misa', 'mosi', 
-         seeds=[1111], 
-         test_seeds=[1111],
-         gpu_ids=[7],
+MMSA_run(args.model_name, args.dataset_name, 
+         seeds=args.seeds, 
+         test_seeds=args.test_seeds,
+         gpu_ids=args.gpu_ids,
          res_save_dir='res/results',
          model_save_dir='res/saved_models',
          log_dir='res/logs')

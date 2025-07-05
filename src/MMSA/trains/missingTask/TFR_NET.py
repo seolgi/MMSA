@@ -35,7 +35,7 @@ class TFR_NET():
         else:
             optimizer = optim.Adam(model.parameters(), lr=self.args.learning_rate_other, weight_decay=self.args.weight_decay_other)
 
-        scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, verbose=True, patience=self.args.patience)
+        scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=self.args.patience) # , verbose=True
 
         epochs, best_epoch = 0, 0
         min_or_max = 'min' if self.args.KeyEval in ['Loss'] else 'max'

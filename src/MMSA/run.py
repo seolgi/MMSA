@@ -128,11 +128,13 @@ def MMSA_run(
     Path(log_dir).mkdir(parents=True, exist_ok=True)
     seeds = seeds if seeds != [] else [1111, 1112, 1113, 1114, 1115]
     test_seeds = test_seeds if test_seeds else []
+    assert len(seeds) == len(test_seeds)
     logger = _set_logger(log_dir, model_name, dataset_name, verbose_level)
 
     logger.info("======================================== Program Start ========================================")
     
     if is_tune: # run tune
+        assert False
         logger.info(f"Tuning with seed {seeds[0]}")
         initial_args = get_config_tune(model_name, dataset_name, config_file)
         initial_args['model_save_path'] = Path(model_save_dir) / f"{initial_args['model_name']}-{initial_args['dataset_name']}.pth"
@@ -222,7 +224,7 @@ def MMSA_run(
             logger.info(f"{'-'*30} Running with seed {seed} [{i + 1}/{len(seeds)}] {'-'*30}")
             # actual running
             current_test_seed = test_seeds[i] if test_seeds and i < len(test_seeds) else None
-            result = _run(args, num_workers, is_tune, test_seed=current_test_seed)
+            result = _run(args, num_workers, is_tune, train_seed=seed, test_seed=current_test_seed)
             logger.info(f"Result for seed {seed}: {result}")
             model_results.append(result)
         criterions = list(model_results[0].keys())
@@ -244,12 +246,13 @@ def MMSA_run(
         logger.info(f"Results saved to {csv_file}.")
 
 
-def _run(args, num_workers=4, is_tune=False, from_sena=False, test_seed=None):
+def _run(args, num_workers=4, is_tune=False, from_sena=False, train_seed=None, test_seed=None):
     # load data and models
     logger.info("Creating train/valid dataloaders...")
-    dataloader = MMDataLoader(args, modes=['train', 'valid'])
+    print("args: ", args)
     model = AMIO(args).to(args['device'])
-
+    dataloader = MMDataLoader(args, seed=train_seed, modes=['train', 'valid'])
+    
     logger.info(f'The model has {count_parameters(model)} trainable parameters')
     # TODO: use multiple gpus
     # if using_cuda and len(args.gpu_ids) > 1:
@@ -270,7 +273,7 @@ def _run(args, num_workers=4, is_tune=False, from_sena=False, test_seed=None):
         setup_seed(test_seed)
 
     logger.info("Creating test dataloader with new seed...")
-    test_dataloader_only = MMDataLoader(args, modes=['test'])
+    test_dataloader_only = MMDataLoader(args, seed=test_seed, modes=['test'])
     dataloader['test'] = test_dataloader_only['test']
 
     if from_sena:

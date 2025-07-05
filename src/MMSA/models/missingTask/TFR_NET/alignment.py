@@ -17,7 +17,10 @@ class CM_ATTN(nn.Module):
     def __init__(self, args):
         super(CM_ATTN, self).__init__()
         self.args = args
-        self.seq_lens = args.seq_lens
+        # self.seq_lens = args.seq_lens
+        # To resolve compatibility issue between MMSA and TFR-Net
+        self.seq_lens = [args.seq_lens[0], args.seq_lens[2], args.seq_lens[1]]
+        print("self.seq_lens:", self.seq_lens)
         dst_feature_dims, nheads = args.dst_feature_dim_nheads
         self.orig_d_l, self.orig_d_a, self.orig_d_v = args.feature_dims
         self.d_l = self.d_a = self.d_v = dst_feature_dims

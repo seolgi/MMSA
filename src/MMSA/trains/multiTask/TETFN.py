@@ -123,9 +123,9 @@ class TETFN():
                         optimizer.zero_grad()
                     left_epochs -= 1
 
-                    vision = batch_data['vision'].to(self.args.device)
-                    audio = batch_data['audio'].to(self.args.device)
-                    text = batch_data['text'].to(self.args.device)
+                    vision = batch_data['vision_m'].to(self.args.device)
+                    audio = batch_data['audio_m'].to(self.args.device)
+                    text = batch_data['text_m'].to(self.args.device)
                     indexes = batch_data['index'].view(-1)
                     cur_id = batch_data['id']
                     ids.extend(cur_id)
@@ -224,9 +224,9 @@ class TETFN():
         with torch.no_grad():
             with tqdm(dataloader) as td:
                 for batch_data in td:
-                    vision = batch_data['vision'].to(self.args.device)
-                    audio = batch_data['audio'].to(self.args.device)
-                    text = batch_data['text'].to(self.args.device)
+                    vision = batch_data['vision_m'].to(self.args.device)
+                    audio = batch_data['audio_m'].to(self.args.device)
+                    text = batch_data['text_m'].to(self.args.device)
                     if not self.args.need_data_aligned:
                         audio_lengths = batch_data['audio_lengths']
                         vision_lengths = batch_data['vision_lengths']

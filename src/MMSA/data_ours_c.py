@@ -3,13 +3,13 @@ import numpy as np
 import random
 import torch
 from torch.utils.data import Dataset, DataLoader
-
+from MMSA.utils import setup_seed
 
 __all__ = ['MMDataLoader']
 
 
 class MMDataset(Dataset):
-    def __init__(self, args, mode='train'):
+    def __init__(self, args, seed, mode='train'):
         self.mode = mode
         self.train_mode = args['train_mode'] # regression or classification
         self.num_classes = args['num_classes'] # only used for classification
@@ -18,7 +18,8 @@ class MMDataset(Dataset):
         # If missing_rate_eval_test is -1, test on a random missing rate; otherwise, test on a fixed missing rate.
         #self.missing_rate_eval_test = args['base']['missing_rate_eval_test']
         self.missing_rate_eval_test = -1
-        self.missing_seed = args['missing_seed']
+        self.seed = seed
+        # self.missing_seed = args['missing_seed']
         self.do_missing = args.get('do_missing', True) # Assuming do_missing might not always be present
         self.missing_l = args.get('missing_l', True) # Assuming default True
         self.missing_a = args.get('missing_a', True) # Assuming default True
@@ -32,6 +33,9 @@ class MMDataset(Dataset):
         DATA_MAP[self.datasetName]()
 
     def __init_mosi(self):
+        #print("[**] seed in data_ours_c.py: ", self.seed)
+        setup_seed(self.seed)
+
         with open(self.dataPath, 'rb') as f:
             data = pickle.load(f)
         
@@ -100,16 +104,16 @@ class MMDataset(Dataset):
             self.labels['missing_rate_v'] = missing_rate[2]
 
         self.text_m, self.text_length, self.text_mask, self.text_missing_mask = self.generate_m(self.text[:,0,:], self.text[:,1,:], None,
-                                                                                missing_rate[0], self.missing_seed, mode='text')
+                                                                                missing_rate[0], mode='text')
         Input_ids_m = np.expand_dims(self.text_m, 1)
         Input_mask = np.expand_dims(self.text_mask, 1)
         Segment_ids = np.expand_dims(self.text[:,2,:], 1)
         self.text_m = np.concatenate((Input_ids_m, Input_mask, Segment_ids), axis=1) 
 
         self.audio_m, self.audio_length, self.audio_mask, self.audio_missing_mask = self.generate_m(self.audio, None, self.audio_lengths,
-                                                                                    missing_rate[1], self.missing_seed, mode='audio')
+                                                                                    missing_rate[1], mode='audio')
         self.vision_m, self.vision_length, self.vision_mask, self.vision_missing_mask = self.generate_m(self.vision, None, self.vision_lengths,
-                                                                                    missing_rate[2], self.missing_seed, mode='vision')
+                                                                                    missing_rate[2], mode='vision')
 
     def __init_mosei(self):
         return self.__init_mosi()
@@ -118,13 +122,12 @@ class MMDataset(Dataset):
         return self.__init_mosi()
 
 
-    def generate_m(self, modality, input_mask, input_len, missing_rate, missing_seed, mode='text'):
+    def generate_m(self, modality, input_mask, input_len, missing_rate, mode='text'):
         
         if mode == 'text':
             input_len = np.argmin(input_mask, axis=1)
         elif mode == 'audio' or mode == 'vision':
             input_mask = np.array([np.array([1] * length + [0] * (modality.shape[1] - length)) for length in input_len])
-        np.random.seed(missing_seed)
         missing_mask = (np.random.uniform(size=input_mask.shape) > missing_rate.repeat(input_mask.shape[1], 1)) * input_mask
         
         assert missing_mask.shape == input_mask.shape
@@ -202,16 +205,16 @@ class MMDataset(Dataset):
             self.labels['missing_rate_v'] = missing_rate[2]
 
             self.text_m, self.text_length, self.text_mask, self.text_missing_mask = self.generate_m(self.text[:,0,:], self.text[:,1,:], None,
-                                                                                    missing_rate[0], self.missing_seed, mode='text')
+                                                                                    missing_rate[0], mode='text')
             Input_ids_m = np.expand_dims(self.text_m, 1)
             Input_mask = np.expand_dims(self.text_mask, 1)
             Segment_ids = np.expand_dims(self.text[:,2,:], 1)
             self.text_m = np.concatenate((Input_ids_m, Input_mask, Segment_ids), axis=1) 
 
             self.audio_m, self.audio_length, self.audio_mask, self.audio_missing_mask = self.generate_m(self.audio, None, self.audio_lengths,
-                                                                                        missing_rate[1], self.missing_seed, mode='audio')
+                                                                                        missing_rate[1], mode='audio')
             self.vision_m, self.vision_length, self.vision_mask, self.vision_missing_mask = self.generate_m(self.vision, None, self.vision_lengths,
-                                                                                    missing_rate[2], self.missing_seed, mode='vision')
+                                                                                    missing_rate[2], mode='vision')
 
         text_m = torch.from_numpy(self.text_m[index]).float()
         audio_m = torch.from_numpy(self.audio_m[index]).float()
@@ -243,9 +246,9 @@ class MMDataset(Dataset):
         return sample
 
 
-def MMDataLoader(args, modes=['train', 'valid', 'test']):
+def MMDataLoader(args, seed, modes=['train', 'valid', 'test']):
     datasets = {
-        mode: MMDataset(args, mode=mode) for mode in modes
+        mode: MMDataset(args, seed=seed, mode=mode) for mode in modes
     }
 
     dataLoader = {

@@ -48,9 +48,9 @@ class CENET():
             with tqdm(dataloader['train']) as td:
                 for index,batch_data in enumerate(td):
                     loss = 0.0
-                    vision = batch_data['vision'].to(self.args.device)
-                    audio = batch_data['audio'].to(self.args.device)
-                    text = batch_data['text'].to(self.args.device)
+                    vision = batch_data['vision_m'].to(self.args.device)
+                    audio = batch_data['audio_m'].to(self.args.device)
+                    text = batch_data['text_m'].to(self.args.device)
                     labels = batch_data['labels']['M']
                     labels = labels.to(self.args.device).view(-1, 1)
                     optimizer.zero_grad()
@@ -102,9 +102,9 @@ class CENET():
             with tqdm(dataloader) as td:
                 for batch_data in td:
                     loss = 0.0
-                    vision = batch_data['vision'].to(self.args.device)
-                    audio = batch_data['audio'].to(self.args.device)
-                    text = batch_data['text'].to(self.args.device)
+                    vision = batch_data['vision_m'].to(self.args.device)
+                    audio = batch_data['audio_m'].to(self.args.device)
+                    text = batch_data['text_m'].to(self.args.device)
                     labels = batch_data['labels']['M']
                     labels = labels.to(self.args.device).view(-1, 1)
                     outputs = model(text,audio,vision)
